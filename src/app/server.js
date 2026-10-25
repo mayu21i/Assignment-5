@@ -3,6 +3,7 @@ const sequelize = require("./common/db/connections");
 const userRouter = require("./user/user.route");
 const postRouter = require("./post/post.route");
 const commentRouter = require("./comment/comment.route");
+
 require("./common/db/associations");
 
 const app = express();
@@ -20,10 +21,17 @@ app.use((error, req, res, next) => {
     return res.status(409).json({ message: "Email already exists." });
   }
 
+  if (error.name === "SequelizeValidationError") {
+    return res.status(400).json({
+      message: error.errors[0].message,
+    });
+  }
+
   res.status(error.statusCode || 500).json({
     message: error.message || "Something went wrong.",
   });
 });
+
 async function startServer() {
   try {
     await sequelize.sync();
